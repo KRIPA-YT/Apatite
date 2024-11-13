@@ -1,18 +1,11 @@
 #include "TwitchAPIConnector.h"
 
-TwitchAPIConnector::TwitchAPIConnector() {
-	this->authenticate();
-	this->connect();
-}
-
-TwitchAPIConnector::~TwitchAPIConnector() {
-
-}
-
 void TwitchAPIConnector::authenticate() {
-	TwitchAPIAuthenticationServer* authServer = new TwitchAPIAuthenticationServer();
-	delete authServer;
+	TwitchAPIAuthenticationServer authServer = TwitchAPIAuthenticationServer();
+	authServer.authenticate();
 }
 
 void TwitchAPIConnector::connect() {
+	this->authenticate();
+	this->connect();
 }

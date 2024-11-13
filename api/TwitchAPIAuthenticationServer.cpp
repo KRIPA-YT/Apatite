@@ -8,7 +8,7 @@ namespace http = boost::beast::http;
 namespace ip = boost::asio::ip;
 using json = nlohmann::json;
 
-TwitchAPIAuthenticationServer::TwitchAPIAuthenticationServer() {
+void TwitchAPIAuthenticationServer::authenticate() {
     if (!this->isTokensValid()) {
         std::cout << "Tokens invalid" << std::endl;
         this->firstAuth();
@@ -49,14 +49,14 @@ bool TwitchAPIAuthenticationServer::handleRequest(http::request<http::string_bod
 
     if (!referer.contains("code")) {
         // Send the response to the client
-        boost::beast::http::write(socket, response);
+        http::write(socket, response);
         return false;
     }
     auto httpHeaders = this->parseHttpHeaders(referer);
 
     if (this->state != httpHeaders["state"]) {
         // Send the response to the client
-        boost::beast::http::write(socket, response);
+        http::write(socket, response);
         return false;
     }
 
@@ -69,7 +69,7 @@ bool TwitchAPIAuthenticationServer::handleRequest(http::request<http::string_bod
     this->code = httpHeaders["code"];
 
     // Send the response to the client
-    boost::beast::http::write(socket, response);
+    http::write(socket, response);
 
     return true;
 }
@@ -104,9 +104,9 @@ void TwitchAPIAuthenticationServer::refererCatcher() {
 
         // Read the HTTP request
         boost::beast::flat_buffer buffer;
-        boost::beast::http::request<boost::beast::http::string_body> request;
+        http::request<http::string_body> request;
         try {
-            boost::beast::http::read(socket, buffer, request);
+            http::read(socket, buffer, request);
         } catch (const std::exception& exc) {
             std::cerr << exc.what();
         }
@@ -185,15 +185,7 @@ bool TwitchAPIAuthenticationServer::isTokensValid() {
 }
 
 bool TwitchAPIAuthenticationServer::isAccessTokenExpired() {
-    YAML::Node* authConfig = &Apatite::fetchInstance().authConfig->config;
     int64_t unixNow = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    return !this->isInteger((*authConfig)["access_token_expiry"].as<std::string>())
-        || !((*authConfig)["access_token_expiry"].as<int64_t>() > unixNow);
+    return Tokens::fetchInstance().accessExpiry > unixNow;
 
-}
-
-bool TwitchAPIAuthenticationServer::isInteger(std::string str) {
-    char* p;
-    strtol(str.c_str(), &p, 10);
-    return *p == 0;
 }

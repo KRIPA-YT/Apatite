@@ -3,9 +3,8 @@
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 
 Apatite::Apatite() {
+    this->twitchAPIConnector = new TwitchAPIConnector();
     this->authConfig = new AuthConfig();
-    this->authConfig->load("auth.yml");
-    this->authConfig->save();
 }
 
 Apatite::~Apatite() {
@@ -21,8 +20,10 @@ Apatite& Apatite::fetchInstance() {
 }
 
 void Apatite::restart() {
+    this->authConfig->load("auth.yml");
+    this->authConfig->save();
     ManagedSingleton<Tokens>::createInstance();
-    this->twitchAPIConnector = new TwitchAPIConnector();
+    this->twitchAPIConnector->connect();
 }
 
 

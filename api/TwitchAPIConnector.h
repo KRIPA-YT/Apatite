@@ -11,11 +11,9 @@ typedef websocketpp::client<websocketpp::config::asio_client> Client;
 
 class TwitchAPIConnector {
 public:
-	TwitchAPIConnector();
-	~TwitchAPIConnector();
+	void connect();
 private:
 	std::string clientID;
 	Client client;
 	void authenticate();
-	void connect();
 };

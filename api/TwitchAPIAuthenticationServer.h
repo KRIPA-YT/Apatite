@@ -15,8 +15,8 @@ using boost::asio::ip::tcp;
 
 class TwitchAPIAuthenticationServer {
 public:
-	TwitchAPIAuthenticationServer();
 	bool refreshAccessToken();
+	void authenticate();
 private:
 	std::string state;
 	std::string code;
@@ -31,5 +31,4 @@ private:
 
 	bool isTokensValid();
 	bool isAccessTokenExpired();
-	bool isInteger(std::string str);
 };
