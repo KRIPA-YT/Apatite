@@ -18,5 +18,43 @@
     <ClCompile Include="Apatite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="api\TwitchAPIConnector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="api\TwitchAPIAuthenticationServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="config\DefaultConfig.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="config\AuthConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="api\Tokens.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Apatite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="api\TwitchAPIConnector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ManagedSingleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="api\TwitchAPIAuthenticationServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="config\AuthConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="api\Tokens.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
