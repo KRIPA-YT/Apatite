@@ -8,30 +8,63 @@ namespace http = boost::beast::http;
 namespace ip = boost::asio::ip;
 using json = nlohmann::json;
 
-void TwitchAPIAuthenticationServer::authenticate() {
-    if (!this->isTokensValid()) {
-        std::cout << "Tokens invalid" << std::endl;
-        this->firstAuth();
-    }
-    if (this->isAccessTokenExpired()) {
-        std::cout << "Tokens expired" << std::endl;
-        this->refreshAccessToken();
-    }
+bool TwitchAPIAuthenticationServer::authenticate() {
+    if (!this->authenticateUser()) return false;
+    return this->authenticateApp();
 }
 
+bool TwitchAPIAuthenticationServer::authenticateUser() {
+    if (this->validateToken(Tokens::fetchInstance().userAccess)) return true;
+    spdlog::info("User access token invalid, generating new one...");
+    if (this->refreshUserAccessToken()) return true;
+    spdlog::info("Refresh token invalid, generating new one...");
+    if (this->firstAuth()) return this->authenticateUser();
 
+    spdlog::error("Reauthorization failed!");
+    return false;
+}
+
+bool TwitchAPIAuthenticationServer::authenticateApp() {
+    if (validateToken(Tokens::fetchInstance().appAccess)) {
+        return true;
+    }
+    spdlog::info("App access token invalid, generating new one...");
+    cpr::Response response = cpr::Post(cpr::Url{ "https://id.twitch.tv/oauth2/token" },
+        cpr::Payload{
+            {"client_id", Tokens::fetchInstance().clientId},
+            {"client_secret", Tokens::fetchInstance().clientSecret},
+            {"grant_type", "client_credentials"}
+        });
+    if (response.status_code != 200) {
+        return false;
+    }
+    json responseJson = json::parse(response.text);
+    Tokens::fetchInstance().appAccess = responseJson["access_token"].get<std::string>();
+    int64_t expiresIn = responseJson["expires_in"].get<int64_t>();
+    int64_t unixNow = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    Tokens::fetchInstance().appAccessExpiry = unixNow + expiresIn;
+    return this->authenticateApp();
+}
+
+bool TwitchAPIAuthenticationServer::validateToken(std::string token) {
+    cpr::Response response = cpr::Get(cpr::Url{ "https://id.twitch.tv/oauth2/validate" }, cpr::Header{{"Authorization", "Bearer " + token}});
+    if (response.status_code != 200) return false;
+
+    json responseJson = json::parse(response.text);
+    return Tokens::fetchInstance().clientId == responseJson["client_id"].get<std::string>();
+}
 
 void TwitchAPIAuthenticationServer::generateState() {
     std::random_device randomDevice;
     std::mt19937 mersenneTwister(randomDevice());
     std::uniform_int_distribution<uint64_t> stateGenerator(0, pow(2, 64));
     this->state = std::format("{:x}", stateGenerator(mersenneTwister));
-    std::cout << std::format("https://id.twitch.tv/oauth2/authorize"
+    spdlog::info("https://id.twitch.tv/oauth2/authorize"
         "?response_type=code"
         "&client_id={}"
         "&redirect_uri=http://localhost:3000"
-        "&scope=channel%3Abot%20chat%3Aread%20chat%3Aedit" // TODO: Make scopes configurable
-        "&state={}", Tokens::fetchInstance().clientId, this->state) << std::endl;
+        "&scope=channel%3Abot%20chat%3Aread%20user%3Aread%3Achat%20user%3Abot%20user%3Awrite%3Achat%20chat%3Aedit" // TODO: Make scopes configurable
+        "&state={}", Tokens::fetchInstance().clientId, this->state);
 }
 
 bool TwitchAPIAuthenticationServer::handleRequest(http::request<http::string_body>& request, ip::tcp::socket& socket) {
@@ -128,64 +161,57 @@ bool TwitchAPIAuthenticationServer::generateTokens() {
         {"grant_type", "authorization_code"},
         {"redirect_uri", "http://localhost:3000"}
         });
-    if (response.status_code == 400) {
+    if (response.status_code != 200) {
         return false;
     }
     json responseJson = json::parse(response.text);
-    Tokens tokens = Tokens::fetchInstance();
-    tokens.access = responseJson["access_token"];
-    tokens.refresh = responseJson["refresh_token"];
-    int64_t expiresIn = responseJson["expires_in"];
+    Tokens::fetchInstance().userAccess = responseJson["access_token"].get<std::string>();
+    Tokens::fetchInstance().refresh = responseJson["refresh_token"].get<std::string>();
+    int64_t expiresIn = responseJson["expires_in"].get<int64_t>();
     int64_t unixNow = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    tokens.accessExpiry = unixNow + expiresIn;
+    Tokens::fetchInstance().userAccessExpiry = unixNow + expiresIn;
     return true;
 }
 
-void TwitchAPIAuthenticationServer::firstAuth() {
+bool TwitchAPIAuthenticationServer::firstAuth() {
     this->generateState();
     this->refererCatcher();
     for (int i = 0; i < maxRetries; i++) {
         if (this->generateTokens()) {
-            return;
+            return true;
         }
-        std::cout << "Refresh token generation failed, Try #" << i << std::endl;
+        spdlog::error("Refresh token generation failed, Try #{:d}", i);
     }
+    return false;
 }
 
-bool TwitchAPIAuthenticationServer::refreshAccessToken() {
+bool TwitchAPIAuthenticationServer::refreshUserAccessToken() {
     cpr::Response response = cpr::Post(cpr::Url{ "https://id.twitch.tv/oauth2/token" },
         cpr::Payload{
-        {"client_id", Apatite::fetchInstance().authConfig->config["client_id"].as<std::string>()},
-        {"client_secret", Apatite::fetchInstance().authConfig->config["client_secret"].as<std::string>()},
+        {"client_id", Tokens::fetchInstance().clientId},
+        {"client_secret", Tokens::fetchInstance().clientSecret},
         {"grant_type", "refresh_token"},
-        {"refresh_token", Apatite::fetchInstance().authConfig->config["refresh_token"].as<std::string>()}
+        {"refresh_token", Tokens::fetchInstance().refresh}
         });
     if (response.status_code == 400) {
         return false;
     }
     if (response.status_code == 401) { // Expired refresh token
-        std::cout << "Refresh tokens invalid, regenerating..." << std::endl;
-        this->refreshAccessToken();
+        spdlog::info("Refresh tokens invalid, regenerating...");
+        this->refreshUserAccessToken();
         return true;
     }
     json responseJson = json::parse(response.text);
-    Tokens tokens = Tokens::fetchInstance();
-    tokens.access = responseJson["access_token"];
-    tokens.refresh = responseJson["refresh_token"];
-    int64_t expiresIn = responseJson["expires_in"];
+    Tokens::fetchInstance().userAccess = responseJson["access_token"].get<std::string>();
+    Tokens::fetchInstance().refresh = responseJson["refresh_token"].get<std::string>();
+    int64_t expiresIn = responseJson["expires_in"].get<int64_t>();
     int64_t unixNow = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    tokens.accessExpiry = unixNow + expiresIn;
+    Tokens::fetchInstance().userAccessExpiry = unixNow + expiresIn;
     return true;
 }
 
-bool TwitchAPIAuthenticationServer::isTokensValid() {
+bool TwitchAPIAuthenticationServer::isUserTokensValid() {
     YAML::Node* authConfig = &Apatite::fetchInstance().authConfig->config;
     return (*authConfig)["refresh_token"].Type() != YAML::NodeType::Null
         && (*authConfig)["access_token"].Type() != YAML::NodeType::Null;
-}
-
-bool TwitchAPIAuthenticationServer::isAccessTokenExpired() {
-    int64_t unixNow = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    return Tokens::fetchInstance().accessExpiry > unixNow;
-
 }

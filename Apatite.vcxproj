@@ -71,8 +71,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>D:\Coding\C++\libs\yaml-cpp-0.8.0\build\lib\Debug;D:\Coding\C++\libs\boost_1_86_0\stage\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <SourcePath>$(VC_SourcePath)</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,13 +111,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Coding\C++\libs\curl-8.11.0\include;D:\Coding\C++\libs\cpr-1.11.0\include;D:\Coding\C++\libs\yaml-cpp-0.8.0\include;D:\Coding\C++\libs\boost_1_86_0;D:\Coding\C++\libs\websocketpp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>yaml-cppd.lib;libboost_random-vc143-mt-gd-x64-1_86.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Link>
@@ -140,6 +144,8 @@
     <ClCompile Include="api\Tokens.cpp" />
     <ClCompile Include="api\TwitchAPIAuthenticationServer.cpp" />
     <ClCompile Include="api\TwitchAPIConnector.cpp" />
+    <ClCompile Include="api\TwitchChat.cpp" />
+    <ClCompile Include="cmds\CmdManager.cpp" />
     <ClCompile Include="config\AuthConfig.cpp" />
     <ClCompile Include="config\DefaultConfig.h" />
   </ItemGroup>
@@ -151,6 +157,8 @@
     <ClInclude Include="api\Tokens.h" />
     <ClInclude Include="api\TwitchAPIAuthenticationServer.h" />
     <ClInclude Include="api\TwitchAPIConnector.h" />
+    <ClInclude Include="api\TwitchChat.h" />
+    <ClInclude Include="cmds\CmdManager.h" />
     <ClInclude Include="config\AuthConfig.h" />
     <ClInclude Include="ManagedSingleton.h" />
   </ItemGroup>

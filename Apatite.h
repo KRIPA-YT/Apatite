@@ -3,11 +3,11 @@
 #include <iostream>
 #include <random>
 #include <cmath>
+#include <spdlog/spdlog.h>
 #include "ManagedSingleton.h"
 #include "api/TwitchAPIConnector.h"
 #include "config/AuthConfig.h"
-
-// Fix the circular inclusion so we can actually use this
+#include "cmds/CmdManager.h"
 
 class Apatite {
 public:
@@ -15,9 +15,11 @@ public:
 	~Apatite();
 	TwitchAPIConnector* twitchAPIConnector;
 	AuthConfig* authConfig;
+	CmdManager* cmdManager;
 
 	void restart();
 
 	static Apatite& fetchInstance();
 private:
+	void run();
 };

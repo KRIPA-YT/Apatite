@@ -33,6 +33,12 @@
     <ClCompile Include="api\Tokens.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="api\TwitchChat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cmds\CmdManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -54,6 +60,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="api\Tokens.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="api\TwitchChat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cmds\CmdManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
