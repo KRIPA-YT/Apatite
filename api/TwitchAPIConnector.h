@@ -8,11 +8,17 @@
 #include <websocketpp/client.hpp>
 #include <nlohmann/json.hpp>
 #include <thread>
+#include <functional>
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> Client;
 typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
 using json = nlohmann::json;
 using NotificationHandlerMap = std::map<std::string, std::function<void(json)>>;
+
+enum RequestMethod {
+	POST,
+	GET
+};
 
 class TwitchAPIConnector {
 public:
@@ -23,6 +29,7 @@ public:
 	bool connect();
 	bool authenticate();
 	void run();
+	json apiRequest(RequestMethod requestMethod, std::string url, json payload);
 
 	void hook(std::string, std::function<void(json)>);
 	void unhook(std::string);

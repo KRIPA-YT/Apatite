@@ -83,7 +83,7 @@ void TwitchAPIConnector::handleNotification(json& message) {
             spdlog::debug("sub_type={}, it->first={}", message["metadata"]["subscription_type"].get<std::string>(), it->first);
             continue;
         }
-        it->second(message["payload"]["event"]);
+        std::async(std::launch::async, it->second, message["payload"]["event"]);
     }
 }
 
@@ -144,8 +144,39 @@ void TwitchAPIConnector::run() {
     client.run_one();
 }
 
+json TwitchAPIConnector::apiRequest(RequestMethod requestMethod, std::string url, json payload) {
+    auto sendRequest = [&](auto&& requestFunc) -> json {
+        auto response = requestFunc();
+        if (response.status_code == 401) {
+            spdlog::info("Unauthorized, trying to reauthorize...");
+            spdlog::debug("Error: {}", response.text);
+            if (!this->authServer->authenticate()) return {};
+            return this->apiRequest(std::forward<RequestMethod>(requestMethod), url, payload); // Retry
+        }
+        return json::parse(response.text);
+        };
+
+    cpr::Header headers = {
+        {"Authorization", "Bearer " + Tokens::fetchInstance().userAccess},
+        {"Client-Id", Tokens::fetchInstance().clientId},
+        {"Content-Type", "application/json"}
+    };
+
+    switch (requestMethod) {
+    case GET:
+        return sendRequest([&]() {
+            return cpr::Get(cpr::Url(url), headers, cpr::Body(payload.dump()));
+            });
+    case POST:
+        return sendRequest([&]() {
+            return cpr::Post(cpr::Url(url), headers, cpr::Body(payload.dump()));
+            });
+    }
+
+}
+
 bool TwitchAPIConnector::subscribe() {
-    json body = {
+    json response = this->apiRequest(POST, "https://api.twitch.tv/helix/eventsub/subscriptions", {
         {"type", "channel.chat.message"},
         {"version", "1"},
         {"condition", {
@@ -156,23 +187,7 @@ bool TwitchAPIConnector::subscribe() {
             {"method", "websocket"},
             {"session_id", this->sessionID}
         }}
-    };
-    spdlog::debug("Authorization: {}", "Bearer " + Tokens::fetchInstance().userAccess);
-    spdlog::debug("Client-Id: {}", Tokens::fetchInstance().clientId);
-    cpr::Response response = cpr::Post(cpr::Url{ "https://api.twitch.tv/helix/eventsub/subscriptions" },
-        cpr::Header{    
-            {"Authorization", "Bearer " + Tokens::fetchInstance().userAccess},
-            {"Client-Id", Tokens::fetchInstance().clientId},
-            {"Content-Type", "application/json"}
-        },
-        cpr::Body{body.dump()}
-    );
-    if (response.status_code == 401) { // Unauthorized
-        spdlog::info("Unauthorized, trying to reauthorize...");
-        spdlog::debug("Error: {}", response.text);
-        if (!this->authServer->authenticate()) return false;
-        this->subscribe(); // Retry
-    }
-    spdlog::debug("Subscription response: {}", response.text);
+        });
+    spdlog::debug("Subscription response: {}", response.dump());
     return true;
 }
