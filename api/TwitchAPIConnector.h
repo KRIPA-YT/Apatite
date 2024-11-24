@@ -29,7 +29,7 @@ public:
 	bool connect();
 	bool authenticate();
 	void run();
-	json apiRequest(RequestMethod requestMethod, std::string url, json payload, uint16_t success);
+	json apiRequest(RequestMethod requestMethod, std::string url, json payload, cpr::Parameters parameters = cpr::Parameters{}, uint16_t success = 200);
 
 	void hook(std::string, std::function<void(json)>);
 	void unhook(std::string);

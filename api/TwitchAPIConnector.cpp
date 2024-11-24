@@ -1,4 +1,5 @@
 #include "TwitchAPIConnector.h"
+#include "../Apatite.h"
 #include <spdlog/spdlog.h>
 
 constexpr auto WEBSOCKET_HOSTNAME = "eventsub.wss.twitch.tv/ws";
@@ -107,6 +108,7 @@ void TwitchAPIConnector::on_fail(websocketpp::connection_hdl hdl) {
 
 void TwitchAPIConnector::on_close(websocketpp::connection_hdl hdl) {
     spdlog::info("Websocket connection closed!");
+    Apatite::fetchInstance().stop();
 }
 
 bool TwitchAPIConnector::connectWebsocket() {
@@ -144,40 +146,32 @@ void TwitchAPIConnector::run() {
     client.run_one();
 }
 
-json TwitchAPIConnector::apiRequest(RequestMethod requestMethod, std::string url, json payload, uint16_t success = 200) {
-    auto sendRequest = [&](auto&& requestFunc) -> json {
-        auto response = requestFunc();
-        if (response.status_code == 401) {
-            spdlog::info("Unauthorized, trying to reauthorize...");
-            spdlog::debug("Error: {}", response.text);
-            if (!this->authServer->authenticate()) return {};
-            return this->apiRequest(std::forward<RequestMethod>(requestMethod), url, payload); // Retry
-        }
-        if (response.status_code != success) {
-            spdlog::error("API Request failed!");
-            spdlog::debug("API Request - Method: {}, URL: {}, Payload: {}", requestMethod == GET ? "GET" : "POST", url, payload.dump());
-            return {};
-        }
-        return json::parse(response.text);
-        };
-
-    cpr::Header headers = {
-        {"Authorization", "Bearer " + Tokens::fetchInstance().userAccess},
+json TwitchAPIConnector::apiRequest(RequestMethod requestMethod, std::string url, json payload, cpr::Parameters parameters, uint16_t success) {
+    cpr::Session session;
+    session.SetOption(cpr::Url(url));
+    session.SetOption(cpr::Header {
         {"Client-Id", Tokens::fetchInstance().clientId},
         {"Content-Type", "application/json"}
-    };
+        });
+    session.SetOption(parameters);
+    session.SetOption(cpr::Bearer(Tokens::fetchInstance().userAccess));
+    session.SetOption(cpr::Body(payload.dump()));
 
-    switch (requestMethod) {
-    case GET:
-        return sendRequest([&]() {
-            return cpr::Get(cpr::Url(url), headers, cpr::Body(payload.dump()));
-            });
-    case POST:
-        return sendRequest([&]() {
-            return cpr::Post(cpr::Url(url), headers, cpr::Body(payload.dump()));
-            });
+    auto response = requestMethod == GET ? session.Get() : session.Post();
+    if (response.status_code == 401) {
+        spdlog::info("Unauthorized, trying to reauthorize...");
+        spdlog::debug("Error: {}", response.text);
+        if (!this->authServer->authenticate()) return {};
+        return this->apiRequest(std::forward<RequestMethod>(requestMethod), url, payload); // Retry
+    }
+    if (response.status_code != success) {
+        spdlog::error("API Request failed!");
+        spdlog::debug("Status Code: {} {}", response.status_code, response.reason);
+        spdlog::debug("API Request - Method: {}, URL: {}, Payload: {}", requestMethod == GET ? "GET" : "POST", url, payload.dump());
+        return {};
     }
 
+    return json::parse(response.text);
 }
 
 bool TwitchAPIConnector::subscribe() {
@@ -192,7 +186,7 @@ bool TwitchAPIConnector::subscribe() {
             {"method", "websocket"},
             {"session_id", this->sessionID}
         }}
-        }, 202);
+        }, {}, 202);
     spdlog::debug("Subscription response: {}", response.dump());
     return true;
 }
