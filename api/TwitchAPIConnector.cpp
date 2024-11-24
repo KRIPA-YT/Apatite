@@ -144,7 +144,7 @@ void TwitchAPIConnector::run() {
     client.run_one();
 }
 
-json TwitchAPIConnector::apiRequest(RequestMethod requestMethod, std::string url, json payload) {
+json TwitchAPIConnector::apiRequest(RequestMethod requestMethod, std::string url, json payload, uint16_t success = 200) {
     auto sendRequest = [&](auto&& requestFunc) -> json {
         auto response = requestFunc();
         if (response.status_code == 401) {
@@ -152,6 +152,11 @@ json TwitchAPIConnector::apiRequest(RequestMethod requestMethod, std::string url
             spdlog::debug("Error: {}", response.text);
             if (!this->authServer->authenticate()) return {};
             return this->apiRequest(std::forward<RequestMethod>(requestMethod), url, payload); // Retry
+        }
+        if (response.status_code != success) {
+            spdlog::error("API Request failed!");
+            spdlog::debug("API Request - Method: {}, URL: {}, Payload: {}", requestMethod == GET ? "GET" : "POST", url, payload.dump());
+            return {};
         }
         return json::parse(response.text);
         };
@@ -187,7 +192,7 @@ bool TwitchAPIConnector::subscribe() {
             {"method", "websocket"},
             {"session_id", this->sessionID}
         }}
-        });
+        }, 202);
     spdlog::debug("Subscription response: {}", response.dump());
     return true;
 }
