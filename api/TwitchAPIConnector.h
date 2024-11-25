@@ -15,11 +15,6 @@ typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> conte
 using json = nlohmann::json;
 using NotificationHandlerMap = std::map<std::string, std::function<void(json)>>;
 
-enum RequestMethod {
-	POST,
-	GET
-};
-
 class TwitchAPIConnector {
 public:
 	TwitchAPIConnector();
@@ -29,7 +24,6 @@ public:
 	bool connect();
 	bool authenticate();
 	void run();
-	json apiRequest(RequestMethod requestMethod, std::string url, json payload, cpr::Parameters parameters = cpr::Parameters{}, uint16_t success = 200);
 
 	void hook(std::string, std::function<void(json)>);
 	void unhook(std::string);

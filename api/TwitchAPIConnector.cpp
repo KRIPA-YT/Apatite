@@ -1,11 +1,15 @@
 #include "TwitchAPIConnector.h"
 #include "../Apatite.h"
 #include <spdlog/spdlog.h>
+#include "APIRequest.h"
 
 constexpr auto WEBSOCKET_HOSTNAME = "eventsub.wss.twitch.tv/ws";
 constexpr auto WEBSOCKET_URI = "wss://eventsub.wss.twitch.tv/ws";
+constexpr auto TWITCH_API_URL = "https://api.twitch.tv/helix/";
 constexpr auto APATITE_TWITCH_UID = "1200898201";
 namespace placeholders = websocketpp::lib::placeholders;
+
+using namespace twitch_api;
 
 TwitchAPIConnector::TwitchAPIConnector() {
 	this->authServer = new TwitchAPIAuthenticationServer();
@@ -84,7 +88,7 @@ void TwitchAPIConnector::handleNotification(json& message) {
             spdlog::debug("sub_type={}, it->first={}", message["metadata"]["subscription_type"].get<std::string>(), it->first);
             continue;
         }
-        std::async(std::launch::async, it->second, message["payload"]["event"]);
+        std::thread(std::bind(it->second, message["payload"]["event"])).detach(); // TODO: Join mechanism
     }
 }
 
@@ -146,36 +150,9 @@ void TwitchAPIConnector::run() {
     client.run_one();
 }
 
-json TwitchAPIConnector::apiRequest(RequestMethod requestMethod, std::string url, json payload, cpr::Parameters parameters, uint16_t success) {
-    cpr::Session session;
-    session.SetOption(cpr::Url(url));
-    session.SetOption(cpr::Header {
-        {"Client-Id", Tokens::fetchInstance().clientId},
-        {"Content-Type", "application/json"}
-        });
-    session.SetOption(parameters);
-    session.SetOption(cpr::Bearer(Tokens::fetchInstance().userAccess));
-    session.SetOption(cpr::Body(payload.dump()));
-
-    auto response = requestMethod == GET ? session.Get() : session.Post();
-    if (response.status_code == 401) {
-        spdlog::info("Unauthorized, trying to reauthorize...");
-        spdlog::debug("Error: {}", response.text);
-        if (!this->authServer->authenticate()) return {};
-        return this->apiRequest(std::forward<RequestMethod>(requestMethod), url, payload); // Retry
-    }
-    if (response.status_code != success) {
-        spdlog::error("API Request failed!");
-        spdlog::debug("Status Code: {} {}", response.status_code, response.reason);
-        spdlog::debug("API Request - Method: {}, URL: {}, Payload: {}", requestMethod == GET ? "GET" : "POST", url, payload.dump());
-        return {};
-    }
-
-    return json::parse(response.text);
-}
-
 bool TwitchAPIConnector::subscribe() {
-    json response = this->apiRequest(POST, "https://api.twitch.tv/helix/eventsub/subscriptions", {
+    Request request = Request(POST, "eventsub/subscriptions");
+    request.setPayload({
         {"type", "channel.chat.message"},
         {"version", "1"},
         {"condition", {
@@ -186,7 +163,9 @@ bool TwitchAPIConnector::subscribe() {
             {"method", "websocket"},
             {"session_id", this->sessionID}
         }}
-        }, {}, 202);
+    });
+    request.setSuccessCode(202);
+    json response = request.request();
     spdlog::debug("Subscription response: {}", response.dump());
     return true;
 }
