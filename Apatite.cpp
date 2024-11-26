@@ -2,7 +2,7 @@
 
 
 Apatite::~Apatite() {
-    ManagedSingleton<Tokens>::destroyInstance();
+    ManagedSingleton<twitch::Tokens>::destroyInstance();
 }
 
 Apatite& Apatite::fetchInstance() {
@@ -15,14 +15,14 @@ Apatite& Apatite::fetchInstance() {
 void Apatite::restart() {
     this->authConfig.load("auth.yml");
     this->authConfig.save();
-    ManagedSingleton<Tokens>::createInstance();
+    ManagedSingleton<twitch::Tokens>::createInstance();
     if (!this->twitchAPIConnector.connect()) {
         spdlog::error("Connection failed");
         return;
     }
     this->cmdManager.hookSubscription();
     this->modCmds.init();
-    Tokens::fetchInstance().save();
+    twitch::Tokens::fetchInstance().save();
     this->run();
 }
 

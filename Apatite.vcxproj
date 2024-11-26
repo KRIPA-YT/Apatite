@@ -141,11 +141,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Apatite.cpp" />
-    <ClCompile Include="api\APIRequest.cpp" />
+    <ClCompile Include="api\Request.cpp" />
     <ClCompile Include="api\Tokens.cpp" />
-    <ClCompile Include="api\TwitchAPIAuthenticationServer.cpp" />
-    <ClCompile Include="api\TwitchAPIConnector.cpp" />
-    <ClCompile Include="api\TwitchChat.cpp" />
+    <ClCompile Include="api\AuthServer.cpp" />
+    <ClCompile Include="api\Connector.cpp" />
+    <ClCompile Include="api\Chat.cpp" />
     <ClCompile Include="api\User.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -159,11 +159,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Apatite.h" />
-    <ClInclude Include="api\APIRequest.h" />
+    <ClInclude Include="api\Request.h" />
     <ClInclude Include="api\Tokens.h" />
-    <ClInclude Include="api\TwitchAPIAuthenticationServer.h" />
-    <ClInclude Include="api\TwitchAPIConnector.h" />
-    <ClInclude Include="api\TwitchChat.h" />
+    <ClInclude Include="api\AuthServer.h" />
+    <ClInclude Include="api\Connector.h" />
+    <ClInclude Include="api\Chat.h" />
     <ClInclude Include="api\User.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>

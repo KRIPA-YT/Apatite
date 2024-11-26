@@ -18,10 +18,10 @@
     <ClCompile Include="Apatite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="api\TwitchAPIConnector.cpp">
+    <ClCompile Include="api\Connector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="api\TwitchAPIAuthenticationServer.cpp">
+    <ClCompile Include="api\AuthServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="config\DefaultConfig.h">
@@ -33,7 +33,7 @@
     <ClCompile Include="api\Tokens.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="api\TwitchChat.cpp">
+    <ClCompile Include="api\Chat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cmds\CmdManager.cpp">
@@ -45,7 +45,7 @@
     <ClCompile Include="api\User.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="api\APIRequest.cpp">
+    <ClCompile Include="api\Request.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,13 +56,13 @@
     <ClInclude Include="Apatite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="api\TwitchAPIConnector.h">
+    <ClInclude Include="api\Connector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ManagedSingleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="api\TwitchAPIAuthenticationServer.h">
+    <ClInclude Include="api\AuthServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="config\AuthConfig.h">
@@ -71,7 +71,7 @@
     <ClInclude Include="api\Tokens.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="api\TwitchChat.h">
+    <ClInclude Include="api\Chat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cmds\CmdManager.h">
@@ -83,7 +83,7 @@
     <ClInclude Include="api\User.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="api\APIRequest.h">
+    <ClInclude Include="api\Request.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,4 @@
-#include "APIRequest.h"
+#include "Request.h"
 #include <spdlog\spdlog.h>
 
 constexpr auto TWITCH_API_URL = "https://api.twitch.tv/helix/";
@@ -53,7 +53,7 @@ namespace twitch {
 		this->handlers.insert({ responseCode, handler});
 	}
 
-	json Request::request(TwitchAPIConnector& connector) {
+	json Request::request(Connector& connector) {
 		if (this->accessTokens.access == "") {
 			spdlog::error("accessToken is not set!");
 			throw std::exception("accessToken is not set!");
@@ -68,7 +68,7 @@ namespace twitch {
 		if (response.status_code == 401) {
 			spdlog::info("Unauthorized, trying to reauthorize...");
 			spdlog::debug("Error: {}", response.text);
-			TwitchAPIAuthenticationServer().authenticateUser(this->accessTokens);
+			AuthServer().authenticateUser(this->accessTokens);
 			return this->request(connector); // Retry
 		}
 		if (response.status_code != this->successCode) {

@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cpr/cpr.h>
 #include "../Apatite.h"
-#include "APIRequest.h"
+#include "Request.h"
 
 namespace twitch {
 	User::User(const uint64_t id) : id_(id) {

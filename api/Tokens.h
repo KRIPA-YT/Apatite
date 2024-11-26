@@ -2,27 +2,28 @@
 #include <string>
 #include <map>
 #include <vector>
+namespace twitch {
+	struct TokenPair {
+		std::string access;
+		std::string refresh;
+		std::vector<std::string> scopes;
+	};
 
-struct TokenPair {
-	std::string access;
-	std::string refresh;
-	std::vector<std::string> scopes;
-};
+	struct Tokens {
+		TokenPair botUserAccess;
+		std::string appAccess;
+		std::string clientId;
+		std::string clientSecret;
 
-struct Tokens {
-	TokenPair botUserAccess;
-	std::string appAccess;
-	std::string clientId;
-	std::string clientSecret;
+		Tokens();
+		~Tokens();
 
-	Tokens();
-	~Tokens();
+		void save();
 
-	void save();
+		TokenPair& getUserAccess(uint64_t userId);
 
-	TokenPair &getUserAccess(uint64_t userId);
-
-	static Tokens& fetchInstance();
-private:
-	std::map<uint64_t, TokenPair> userTokenPairs;
-};
+		static Tokens& fetchInstance();
+	private:
+		std::map<uint64_t, TokenPair> userTokenPairs;
+	};
+}

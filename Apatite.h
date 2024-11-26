@@ -5,7 +5,7 @@
 #include <cmath>
 #include <spdlog/spdlog.h>
 #include "ManagedSingleton.h"
-#include "api/TwitchAPIConnector.h"
+#include "api/Connector.h"
 #include "config/AuthConfig.h"
 #include "cmds/CmdManager.h"
 #include "cmds/ModCmds.h"
@@ -13,7 +13,7 @@
 class Apatite {
 public:
 	~Apatite();
-	TwitchAPIConnector twitchAPIConnector;
+	twitch::Connector twitchAPIConnector;
 	AuthConfig authConfig;
 	CmdManager cmdManager;
 	ModCmds modCmds;
