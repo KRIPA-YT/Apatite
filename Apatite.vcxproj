@@ -141,11 +141,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Apatite.cpp" />
+    <ClCompile Include="api\APIRequest.cpp" />
     <ClCompile Include="api\Tokens.cpp" />
     <ClCompile Include="api\TwitchAPIAuthenticationServer.cpp" />
     <ClCompile Include="api\TwitchAPIConnector.cpp" />
     <ClCompile Include="api\TwitchChat.cpp" />
+    <ClCompile Include="api\User.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="cmds\CmdManager.cpp" />
+    <ClCompile Include="cmds\ModCmds.cpp" />
     <ClCompile Include="config\AuthConfig.cpp" />
     <ClCompile Include="config\DefaultConfig.h" />
   </ItemGroup>
@@ -154,11 +159,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Apatite.h" />
+    <ClInclude Include="api\APIRequest.h" />
     <ClInclude Include="api\Tokens.h" />
     <ClInclude Include="api\TwitchAPIAuthenticationServer.h" />
     <ClInclude Include="api\TwitchAPIConnector.h" />
     <ClInclude Include="api\TwitchChat.h" />
+    <ClInclude Include="api\User.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="cmds\CmdManager.h" />
+    <ClInclude Include="cmds\ModCmds.h" />
     <ClInclude Include="config\AuthConfig.h" />
     <ClInclude Include="ManagedSingleton.h" />
   </ItemGroup>

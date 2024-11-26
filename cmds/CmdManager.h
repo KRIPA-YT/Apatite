@@ -2,13 +2,14 @@
 #include <nlohmann/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <string>
+#include "../api/User.h"
 
 using json = nlohmann::json;
 
 struct CommandArgs {
 	std::vector<std::string> args;
-	uint64_t broadcasterUserId;
-	uint64_t chatterUserId;
+	twitch::Broadcaster& broadcaster;
+	twitch::User sender;
 	std::string message_id;
 };
 struct Command {
@@ -21,7 +22,7 @@ using CmdHandlerMap = std::map<std::string, Command>;
 
 class CmdManager {
 public:
-	CmdManager();
+	void hookSubscription();
 
 	void hook(std::string, Command);
 	void unhook(std::string);

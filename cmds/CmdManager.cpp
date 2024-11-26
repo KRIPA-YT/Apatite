@@ -5,7 +5,7 @@
 
 constexpr char PREFIX = '!'; // TODO: Move to config
 
-CmdManager::CmdManager() {
+void CmdManager::hookSubscription() {
 	Apatite::fetchInstance().twitchAPIConnector->hook("channel.chat.message", std::bind(&CmdManager::onMessage, this, std::placeholders::_1));
 }
 
@@ -46,8 +46,16 @@ void CmdManager::onMessage(json json) {
 
 	CommandArgs cmdArgs = {
 		.args = args,
-		.broadcasterUserId = static_cast<uint64_t>(std::stoi(json["broadcaster_user_id"].get<std::string>())),
-		.chatterUserId = static_cast<uint64_t>(std::stoi(json["chatter_user_id"].get<std::string>())),
+		.broadcaster = twitch::Broadcaster::of(
+			static_cast<uint64_t>(std::stoi(json["broadcaster_user_id"].get<std::string>())),
+			json["broadcaster_user_name"].get<std::string>(),
+			json["broadcaster_user_login"].get<std::string>()
+		),
+		.sender = twitch::User(
+			static_cast<uint64_t>(std::stoi(json["chatter_user_id"].get<std::string>())),
+			json["chatter_user_name"].get<std::string>(),
+			json["chatter_user_login"].get<std::string>()
+		),
 		.message_id = json["message_id"].get<std::string>()
 	};
 	this->fire(label, cmdArgs);
