@@ -30,6 +30,6 @@ namespace twitch {
 		void setRequestMethod(RequestMethod requestMethod);
 		void addHandler(uint16_t responseCode, std::function<json(Response)> handler);
 		void setSuccessCode(uint16_t code);
-		json request(TwitchAPIConnector& connector = *(Apatite::fetchInstance().twitchAPIConnector));
+		json request(TwitchAPIConnector& connector = Apatite::fetchInstance().twitchAPIConnector);
 	};
 }

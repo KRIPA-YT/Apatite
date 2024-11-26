@@ -17,9 +17,7 @@ using NotificationHandlerMap = std::map<std::string, std::function<void(json)>>;
 
 class TwitchAPIConnector {
 public:
-	TwitchAPIConnector();
-	~TwitchAPIConnector();
-	TwitchChat* twitchChat;
+	TwitchChat twitchChat;
 
 	bool connect();
 	bool authenticate();

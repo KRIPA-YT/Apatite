@@ -12,12 +12,11 @@
 
 class Apatite {
 public:
-	Apatite();
 	~Apatite();
-	TwitchAPIConnector* twitchAPIConnector;
+	TwitchAPIConnector twitchAPIConnector;
 	AuthConfig authConfig;
-	CmdManager* cmdManager;
-	ModCmds* modCmds;
+	CmdManager cmdManager;
+	ModCmds modCmds;
 
 	void restart();
 	void stop();

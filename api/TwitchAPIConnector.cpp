@@ -11,15 +11,6 @@ namespace placeholders = websocketpp::lib::placeholders;
 
 using namespace twitch;
 
-TwitchAPIConnector::TwitchAPIConnector() {
-	this->authServer = TwitchAPIAuthenticationServer();
-    this->twitchChat = new TwitchChat();
-}
-
-TwitchAPIConnector::~TwitchAPIConnector() {
-	delete this->twitchChat;
-}
-
 bool TwitchAPIConnector::authenticate() {
     if (!this->authServer.authenticateApp()) return false;
     Tokens::fetchInstance().botUserAccess.scopes = {

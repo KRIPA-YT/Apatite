@@ -6,7 +6,7 @@
 constexpr char PREFIX = '!'; // TODO: Move to config
 
 void CmdManager::hookSubscription() {
-	Apatite::fetchInstance().twitchAPIConnector->hook("channel.chat.message", std::bind(&CmdManager::onMessage, this, std::placeholders::_1));
+	Apatite::fetchInstance().twitchAPIConnector.hook("channel.chat.message", std::bind(&CmdManager::onMessage, this, std::placeholders::_1));
 }
 
 void CmdManager::hook(std::string label, Command command) {

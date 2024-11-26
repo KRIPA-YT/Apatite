@@ -8,10 +8,10 @@ ModCmds::ModCmds() {
 		.usage = "!stop",
 		.handler = [](CommandArgs args) {
 			if (!args.sender.isMod(args.broadcaster)) {
-				Apatite::fetchInstance().twitchAPIConnector->twitchChat->sendMessage("You don't have sufficient permissions to execute this command...");
+				Apatite::fetchInstance().twitchAPIConnector.twitchChat.sendMessage("You don't have sufficient permissions to execute this command...");
 				return true;
 			}
-			Apatite::fetchInstance().twitchAPIConnector->twitchChat->sendMessage("Stopping...");
+			Apatite::fetchInstance().twitchAPIConnector.twitchChat.sendMessage("Stopping...");
 			Apatite::fetchInstance().stop();
 			return true;
 		}
@@ -19,5 +19,5 @@ ModCmds::ModCmds() {
 }
 
 void ModCmds::init() {
-	Apatite::fetchInstance().cmdManager->hook("stop", stopCommand);
+	Apatite::fetchInstance().cmdManager.hook("stop", stopCommand);
 }

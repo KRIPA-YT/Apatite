@@ -1,17 +1,8 @@
 #include "Apatite.h"
 
-Apatite::Apatite() {
-    this->twitchAPIConnector = new TwitchAPIConnector();
-    this->authConfig = AuthConfig();
-    this->cmdManager = new CmdManager();
-    this->modCmds = new ModCmds();
-}
 
 Apatite::~Apatite() {
-    delete this->twitchAPIConnector;
     ManagedSingleton<Tokens>::destroyInstance();
-    delete this->cmdManager;
-    delete this->modCmds;
 }
 
 Apatite& Apatite::fetchInstance() {
@@ -25,12 +16,12 @@ void Apatite::restart() {
     this->authConfig.load("auth.yml");
     this->authConfig.save();
     ManagedSingleton<Tokens>::createInstance();
-    if (!this->twitchAPIConnector->connect()) {
+    if (!this->twitchAPIConnector.connect()) {
         spdlog::error("Connection failed");
         return;
     }
-    this->cmdManager->hookSubscription();
-    this->modCmds->init();
+    this->cmdManager.hookSubscription();
+    this->modCmds.init();
     Tokens::fetchInstance().save();
     this->run();
 }
@@ -38,7 +29,7 @@ void Apatite::restart() {
 void Apatite::run() {
     this->running = true;
     while (this->running) {
-        this->twitchAPIConnector->run();
+        this->twitchAPIConnector.run();
     }
 }
 
