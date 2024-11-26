@@ -2,17 +2,17 @@
 #include <spdlog\spdlog.h>
 
 constexpr auto TWITCH_API_URL = "https://api.twitch.tv/helix/";
-namespace twitch_api {
-	Request::Request() {
+namespace twitch {
+	Request::Request(TokenPair& accessTokens) : accessTokens(accessTokens) {
 		this->initHeader();
 	}
 
-	Request::Request(std::string endpoint) {
+	Request::Request(std::string endpoint, TokenPair& accessTokens) : accessTokens(accessTokens) {
 		this->setEndpoint(endpoint);
 		this->initHeader();
 	}
 
-	Request::Request(RequestMethod requestMethod, std::string endpoint) {
+	Request::Request(RequestMethod requestMethod, std::string endpoint, TokenPair& accessTokens) : accessTokens(accessTokens) {
 		this->setEndpoint(endpoint);
 		this->setRequestMethod(requestMethod);
 		this->initHeader();
@@ -41,30 +41,34 @@ namespace twitch_api {
 		this->successCode = successCode;
 	}
 
-	void Request::setTokenType(AccessToken accessToken) {
-		this->accessToken = accessToken;
+	void Request::setAccessTokens(TokenPair accessTokens) {
+		this->accessTokens = accessTokens;
 	}
 
 	void Request::setRequestMethod(RequestMethod requestMethod) {
 		this->requestMethod = requestMethod;
 	}
 
-	void Request::addHandler(uint16_t responseCode, std::function<json(Response)>* handler) {
+	void Request::addHandler(uint16_t responseCode, std::function<json(Response)> handler) {
 		this->handlers.insert({ responseCode, handler});
 	}
 
 	json Request::request(TwitchAPIConnector& connector) {
-		session.SetOption(cpr::Bearer(this->accessToken == USER ? Tokens::fetchInstance().userAccess : Tokens::fetchInstance().appAccess));
+		if (this->accessTokens.access == "") {
+			spdlog::error("accessToken is not set!");
+			throw std::exception("accessToken is not set!");
+		}
+		session.SetOption(cpr::Bearer(this->accessTokens.access));
 
 		// TODO: Check if anything is set
 		auto response = this->requestMethod == GET ? session.Get() : session.Post();
 		if (this->handlers.find(response.status_code) != this->handlers.end()) {
-			return (*this->handlers[response.status_code])(response);
+			return this->handlers[response.status_code](response);
 		}
 		if (response.status_code == 401) {
 			spdlog::info("Unauthorized, trying to reauthorize...");
 			spdlog::debug("Error: {}", response.text);
-			if (!connector.authenticate()) return {};
+			TwitchAPIAuthenticationServer().authenticateUser(this->accessTokens);
 			return this->request(connector); // Retry
 		}
 		if (response.status_code != this->successCode) {

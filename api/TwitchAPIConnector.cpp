@@ -9,20 +9,28 @@ constexpr auto TWITCH_API_URL = "https://api.twitch.tv/helix/";
 constexpr auto APATITE_TWITCH_UID = "1200898201";
 namespace placeholders = websocketpp::lib::placeholders;
 
-using namespace twitch_api;
+using namespace twitch;
 
 TwitchAPIConnector::TwitchAPIConnector() {
-	this->authServer = new TwitchAPIAuthenticationServer();
+	this->authServer = TwitchAPIAuthenticationServer();
     this->twitchChat = new TwitchChat();
 }
 
 TwitchAPIConnector::~TwitchAPIConnector() {
-	delete this->authServer;
 	delete this->twitchChat;
 }
 
 bool TwitchAPIConnector::authenticate() {
-    return this->authServer->authenticate();
+    if (!this->authServer.authenticateApp()) return false;
+    Tokens::fetchInstance().botUserAccess.scopes = {
+        "channel:bot",
+        "chat:read",
+        "user:read:chat",
+        "user:write:chat",
+        "user:bot",
+        "chat:edit"
+    };
+    return this->authServer.authenticateUser(Tokens::fetchInstance().botUserAccess);
 }
 
 void TwitchAPIConnector::hook(std::string event, std::function<void(json)> handler) {
@@ -98,7 +106,7 @@ void TwitchAPIConnector::handleSessionWelcome(json& message, websocketpp::connec
         return;
     }
     // If fails, reauthenticate
-    if (!this->authServer->authenticate()) {
+    if (!this->authenticate()) {
         spdlog::error("Can't reauthenticate!");
         return;
     }
@@ -151,7 +159,7 @@ void TwitchAPIConnector::run() {
 }
 
 bool TwitchAPIConnector::subscribe() {
-    Request request = Request(POST, "eventsub/subscriptions");
+    Request request = Request(POST, "eventsub/subscriptions", Tokens::fetchInstance().botUserAccess);
     request.setPayload({
         {"type", "channel.chat.message"},
         {"version", "1"},

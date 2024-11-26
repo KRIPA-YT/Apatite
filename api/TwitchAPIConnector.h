@@ -31,7 +31,7 @@ private:
 	std::string clientID;
 	std::string sessionID;
 	NotificationHandlerMap notificationHandlers = NotificationHandlerMap();
-	TwitchAPIAuthenticationServer* authServer;
+	TwitchAPIAuthenticationServer authServer;
 	Client client;
 
 	context_ptr on_tls_init(const char* hostname, websocketpp::connection_hdl);

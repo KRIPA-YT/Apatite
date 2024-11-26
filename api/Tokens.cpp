@@ -2,36 +2,60 @@
 #include "../Apatite.h"
 
 Tokens::Tokens() {
-	YAML::Node* config = &Apatite::fetchInstance().authConfig->config;
-	userAccess = (*config)["user_access_token"].as<std::string>();
-	appAccess = (*config)["app_access_token"].as<std::string>();
-	clientId = (*config)["client_id"].as<std::string>();
-	clientSecret = (*config)["client_secret"].as<std::string>();
-	refresh = (*config)["refresh_token"].as<std::string>();
-	try {
-		userAccessExpiry = std::stoi((*config)["user_access_token_expiry"].as<std::string>());
-	} catch (...) {
-		userAccessExpiry = 0;
-	}
-	try {
-		appAccessExpiry = std::stoi((*config)["app_access_token_expiry"].as<std::string>());
-	} catch (...) {
-		appAccessExpiry = 0;
+	YAML::Node& config = Apatite::fetchInstance().authConfig.config;
+	appAccess = config["app_access_token"].as<std::string>();
+	botUserAccess = TokenPair{
+		.access = config["user_access_token"].as<std::string>(),
+		.refresh = config["refresh_token"].as<std::string>()
+	};
+	clientId = config["client_id"].as<std::string>();
+	clientSecret = config["client_secret"].as<std::string>();
+
+	for (auto it = config.begin(); it != config.end(); it++) {
+		try {
+			std::string userIdString = it->first.as<std::string>();
+			uint64_t userId = std::stoi(userIdString);
+			userTokenPairs[userId] = TokenPair {
+				.access = config[userIdString]["user_access_token"].as<std::string>(),
+				.refresh = config[userIdString]["refresh_token"].as<std::string>()
+			};
+		} catch (std::invalid_argument) {} // Filtering out all the non user-specific tokens
 	}
 }
 
 Tokens::~Tokens() {
-	spdlog::info("Saving auth.yml...");
-	YAML::Node* config = &Apatite::fetchInstance().authConfig->config;
+	this->save();
+}
 
-	(*config)["user_access_token"] = YAML::Load(userAccess);
-	(*config)["user_access_token_expiry"] = YAML::Load(std::to_string(userAccessExpiry));
-	(*config)["app_access_token"] = YAML::Load(appAccess);
-	(*config)["app_access_token_expiry"] = YAML::Load(std::to_string(appAccessExpiry));
-	(*config)["client_id"] = YAML::Load(clientId);
-	(*config)["client_secret"] = YAML::Load(clientSecret);
-	(*config)["refresh_token"] = YAML::Load(refresh);
-	Apatite::fetchInstance().authConfig->save();
+void Tokens::save() {
+	spdlog::info("Saving auth.yml...");
+	YAML::Node& config = Apatite::fetchInstance().authConfig.config;
+
+	config["app_access_token"] = YAML::Load(appAccess);
+	config["user_access_token"] = YAML::Load(botUserAccess.access);
+	config["refresh_token"] = YAML::Load(botUserAccess.refresh);
+	config["client_id"] = YAML::Load(clientId);
+	config["client_secret"] = YAML::Load(clientSecret);
+
+	for (auto const& [id, tokenPair] : this->userTokenPairs) {
+		std::string userId = std::to_string(id);
+		config[userId]["user_access_token"] = tokenPair.access;
+		config[userId]["refresh_token"] = tokenPair.refresh;
+	}
+	Apatite::fetchInstance().authConfig.save();
+}
+
+TokenPair &Tokens::getUserAccess(uint64_t userId) {
+	YAML::Node& config = Apatite::fetchInstance().authConfig.config;
+	if (this->userTokenPairs.find(userId) != this->userTokenPairs.end()) {
+		return this->userTokenPairs[userId];
+	}
+	TwitchAPIAuthenticationServer authServer;
+	this->userTokenPairs[userId] = TokenPair{
+		.scopes = {"moderation:read"}
+	};
+	if (!authServer.authenticateUser(this->userTokenPairs[userId])) throw std::exception("Couldn't authenticate!");
+	return this->userTokenPairs[userId];
 }
 
 Tokens& Tokens::fetchInstance() {

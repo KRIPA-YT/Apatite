@@ -1,17 +1,28 @@
 #pragma once
 #include <string>
+#include <map>
+#include <vector>
+
+struct TokenPair {
+	std::string access;
+	std::string refresh;
+	std::vector<std::string> scopes;
+};
 
 struct Tokens {
-	std::string userAccess;
+	TokenPair botUserAccess;
 	std::string appAccess;
 	std::string clientId;
 	std::string clientSecret;
-	std::string refresh;
-	int64_t userAccessExpiry;
-	int64_t appAccessExpiry;
 
 	Tokens();
 	~Tokens();
 
+	void save();
+
+	TokenPair &getUserAccess(uint64_t userId);
+
 	static Tokens& fetchInstance();
+private:
+	std::map<uint64_t, TokenPair> userTokenPairs;
 };

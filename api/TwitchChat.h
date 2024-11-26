@@ -1,10 +1,11 @@
 #pragma once
 #include <string>
+#include <condition_variable>
+#include <mutex>
 
 class TwitchChat {
 public:
-	bool sendMessage(std::string message);
-	bool sendPlainMessage(std::string message);
-private:
+    TwitchChat();
 
+	bool sendMessage(std::string message);
 };

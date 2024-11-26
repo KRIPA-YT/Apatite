@@ -9,28 +9,27 @@
 #include <cmath>
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
+#include "Tokens.h"
 
 
 using boost::asio::ip::tcp;
 
 class TwitchAPIAuthenticationServer {
 public:
-	bool refreshUserAccessToken();
-	bool authenticate();
+	TokenPair refreshUserAccessToken(std::string refresh);
+
+	bool authenticateUser(TokenPair& tokenPair);;
+	bool authenticateApp();
 private:
 	std::string state;
 	std::string code;
 
-	bool authenticateUser();
-	bool authenticateApp();
-
 	bool validateToken(std::string token);
 
-	void generateState();
+	void generateState(const std::vector<std::string> scopes);
 	std::map<std::string, std::string> parseHttpHeaders(boost::core::basic_string_view<char>& request);
 	bool handleRequest(boost::beast::http::request<boost::beast::http::string_body>& request, boost::asio::ip::tcp::socket& socket);
 	void refererCatcher();
-	bool generateTokens();
-	bool firstAuth();
-	bool isUserTokensValid();
+	TokenPair generateTokens();
+	TokenPair firstAuth(const std::vector<std::string> scopes);
 };
