@@ -7,5 +7,6 @@ namespace twitch {
 		Chat();
 
 		bool sendMessage(std::string message);
+		bool reply(std::string message, std::string messageId);
 	};
 }

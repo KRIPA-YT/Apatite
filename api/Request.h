@@ -1,7 +1,7 @@
 #pragma once
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
-#include "Connector.h"
+#include "APIConnector.h"
 #include "../Apatite.h"
 
 using namespace cpr;

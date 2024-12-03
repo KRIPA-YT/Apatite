@@ -11,10 +11,11 @@
 #include <functional>
 
 namespace twitch {
+	using json = nlohmann::json;
 	typedef websocketpp::client<websocketpp::config::asio_tls_client> Client;
 	typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
-	using json = nlohmann::json;
-	using NotificationHandlerMap = std::map<std::string, std::function<void(json)>>;
+	typedef std::function<void(const json&)> NotificationHandler;
+	using NotificationHandlerMap = std::map<std::string, NotificationHandler>;
 
 	class Connector {
 	public:
@@ -24,7 +25,7 @@ namespace twitch {
 		bool authenticate();
 		void run();
 
-		void hook(std::string, std::function<void(json)>);
+		void hook(std::string, NotificationHandler);
 		void unhook(std::string);
 	private:
 		std::string clientID;
@@ -35,8 +36,8 @@ namespace twitch {
 
 		context_ptr on_tls_init(const char* hostname, websocketpp::connection_hdl);
 		void on_message(websocketpp::connection_hdl, Client::message_ptr msg);
-		void handleNotification(json& message);
-		void handleSessionWelcome(json& message, websocketpp::connection_hdl& hdl, std::shared_ptr<websocketpp::config::core_client::message_type>& msg);
+		void handleNotification(const json& message);
+		void handleSessionWelcome(const json& message, websocketpp::connection_hdl& hdl, std::shared_ptr<websocketpp::config::core_client::message_type>& msg);
 		void on_open(websocketpp::connection_hdl hdl, Client* c);
 		void on_fail(websocketpp::connection_hdl hdl);
 		void on_close(websocketpp::connection_hdl hdl);

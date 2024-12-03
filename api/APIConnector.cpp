@@ -1,4 +1,4 @@
-#include "Connector.h"
+#include "APIConnector.h"
 #include "../Apatite.h"
 #include <spdlog/spdlog.h>
 #include "Request.h"
@@ -23,7 +23,7 @@ namespace twitch {
         return this->authServer.authenticateUser(Tokens::fetchInstance().botUserAccess);
     }
 
-    void Connector::hook(std::string event, std::function<void(json)> handler) {
+    void Connector::hook(std::string event, NotificationHandler handler) {
         this->notificationHandlers.insert({event, handler});
     }
 
@@ -64,7 +64,7 @@ namespace twitch {
 
     void Connector::on_message(websocketpp::connection_hdl hdl, Client::message_ptr msg) {
         spdlog::debug("Received message: {}", msg->get_payload());
-        json message = json::parse(msg->get_payload());
+        const json message = json::parse(msg->get_payload());
         if (message["metadata"]["message_type"].get<std::string>() == "session_welcome") {
             this->handleSessionWelcome(message, hdl, msg);
             return;
@@ -79,17 +79,23 @@ namespace twitch {
         }
     }
 
-    void Connector::handleNotification(json& message) {
+    void Connector::handleNotification(const json& message) {
         for (auto it = this->notificationHandlers.begin(); it != this->notificationHandlers.end(); it++) {
             if (it->first != message["metadata"]["subscription_type"].get<std::string>()) {
-                spdlog::debug("sub_type={}, it->first={}", message["metadata"]["subscription_type"].get<std::string>(), it->first);
                 continue;
             }
-            std::thread(std::bind(it->second, message["payload"]["event"])).detach(); // TODO: Join mechanism
+            std::thread([message, it]() {
+                try {
+                    it->second(message["payload"]["event"]);
+                } catch (const std::exception& exc) {
+                    spdlog::error("Exception thrown while processing notification!");
+                    spdlog::error(exc.what());
+                }
+            }).detach();// TODO: Join mechanism
         }
     }
 
-    void Connector::handleSessionWelcome(json& message, websocketpp::connection_hdl& hdl, std::shared_ptr<websocketpp::config::core_client::message_type>& msg) {
+    void Connector::handleSessionWelcome(const json& message, websocketpp::connection_hdl& hdl, std::shared_ptr<websocketpp::config::core_client::message_type>& msg) {
         this->sessionID = message["payload"]["session"]["id"].get<std::string>();
         if (this->subscribe()) {
             return;
@@ -161,7 +167,7 @@ namespace twitch {
             }}
             });
         request.setSuccessCode(202);
-        json response = request.request();
+        const json response = request.request();
         spdlog::debug("Subscription response: {}", response.dump());
         return true;
     }

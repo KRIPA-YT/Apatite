@@ -2,14 +2,12 @@
 #include "CmdManager.h"
 
 namespace cmds {
-	class ModCmds {
+	class Cmds {
 	public:
-		ModCmds();
+		Cmds();
 
 		void init();
 	private:
-		Command stopCommand;
-		Command removeSudo;
-		Command addSudo;
+		Command sudoCommand;
 	};
 }

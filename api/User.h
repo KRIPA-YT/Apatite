@@ -9,39 +9,37 @@ namespace twitch {
 
 	struct User {
 	private:
-		uint64_t id_;
+		uint32_t id_;
 		std::string name_;
 		std::string login_;
 	public:
-		User(const uint64_t id);
-		User(const std::string login);
-		User(const User& user);
-		User(const uint64_t id, std::string name, std::string login);
-
-		const uint64_t& id = id_;
+		const uint32_t& id = id_;
 		const std::string& name = name_;
 		const std::string& login = login_;
-		bool isMod(const Broadcaster& broadcaster);
-		operator Broadcaster() const;
+
+		User(const uint32_t id);
+		User(const std::string login);
+		User(const User& user);
+		User(const uint32_t id, std::string name, std::string login);
+
+		bool isMod(const Broadcaster& broadcaster) const;
+		bool isSudoer(const Broadcaster& broadcaster) const;
+
 		bool operator==(const User& other) const;
+		User& operator=(const User& other);
 	};
 
 	struct Broadcaster : public User {
-		static Broadcaster &of(const User& user);
-		static Broadcaster &of(const uint64_t id);
-		static Broadcaster &of(const std::string login);
-		static Broadcaster &of(const uint64_t id, const std::string name, const std::string login);
-
-		operator User() const;
+		Broadcaster(const User& user);
+		Broadcaster(const uint32_t id);
+		Broadcaster(const std::string login);
+		Broadcaster(const uint32_t id, const std::string name, const std::string login);
 
 		std::vector<User> mods;
+		std::vector<User> sudoers;
 	private:
-		Broadcaster(const User& user);
-		Broadcaster(const uint64_t id);
-		Broadcaster(const std::string login);
-		Broadcaster(const uint64_t id, const std::string name, const std::string login);
-
 		void requestModerators();
+		void requestSudoers();
 
 		static std::vector<Broadcaster> broadcasters;
 	};

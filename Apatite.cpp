@@ -1,5 +1,10 @@
 #include "Apatite.h"
+#include <random>
+#include <cmath>
+#include <spdlog/spdlog.h>
+#include "ManagedSingleton.h"
 
+Apatite::Apatite() : sqlConnector(sql::Connector("apatite.sqlite")) {}
 
 Apatite::~Apatite() {
     ManagedSingleton<twitch::Tokens>::destroyInstance();
@@ -22,6 +27,7 @@ void Apatite::restart() {
     }
     this->cmdManager.hookSubscription();
     this->modCmds.init();
+    this->cmds.init();
     twitch::Tokens::fetchInstance().save();
     this->run();
 }

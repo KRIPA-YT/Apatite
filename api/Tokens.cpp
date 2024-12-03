@@ -1,5 +1,7 @@
 #include "Tokens.h"
 #include "../Apatite.h"
+#include <spdlog/spdlog.h>
+#include "../ManagedSingleton.h"
 
 
 namespace twitch {

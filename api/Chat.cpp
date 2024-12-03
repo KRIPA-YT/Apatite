@@ -32,4 +32,23 @@ namespace twitch {
         spdlog::info("Sent message: {}", message);
         return true;
     }
+
+    bool Chat::reply(std::string message, std::string messageId) {
+        Request request = Request(POST, "chat/messages", Tokens::fetchInstance().botUserAccess);
+        request.setPayload({
+            {"broadcaster_id", "465362349"},
+            {"sender_id", APATITE_TWITCH_UID},
+            {"message", message},
+            {"reply_parent_message_id", messageId}
+            });
+        request.addHandler(429, [&](cpr::Response response) {
+            std::time_t ratelimitReset = std::stoi(response.header.find("Ratelimit-Reset")->second);
+            std::this_thread::sleep_until(std::chrono::system_clock::from_time_t(ratelimitReset));
+            this->sendMessage(message);
+            return json{};
+            });
+        request.request();
+        spdlog::info("Sent reply to {}: {}", messageId, message);
+        return true;
+    }
 }

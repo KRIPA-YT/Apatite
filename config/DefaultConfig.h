@@ -6,43 +6,45 @@
 #include <map>
 #include <yaml-cpp/yaml.h>
 
-class DefaultConfig {
-public:
-	std::string fileName;
-	YAML::Node config;
+namespace config {
+	class DefaultConfig {
+	public:
+		std::string fileName;
+		YAML::Node config;
 
-	virtual ~DefaultConfig() {
-		this->save();
-	}
-
-	void save() {
-		std::ofstream fout(this->fileName);
-		fout << this->config;
-		fout.close();
-	}
-
-	void load(std::string fileName) {
-		this->fileName = fileName;
-		std::ifstream file(this->fileName.c_str());
-		if (file.good()) {
-			this->config = YAML::LoadFile(this->fileName);
-		} else {
-			this->config = YAML::Load("");
+		virtual ~DefaultConfig() {
+			this->save();
 		}
-		auto* defaults = this->getDefaults();
 
-		for (std::map<std::string, YAML::Node>::const_iterator it = defaults->begin(); it != defaults->end(); it++) {
-			if (config[it->first]) { // If key exists
-				continue;
+		void save() {
+			std::ofstream fout(this->fileName);
+			fout << this->config;
+			fout.close();
+		}
+
+		void load(std::string fileName) {
+			this->fileName = fileName;
+			std::ifstream file(this->fileName.c_str());
+			if (file.good()) {
+				this->config = YAML::LoadFile(this->fileName);
+			} else {
+				this->config = YAML::Load("");
 			}
-			// Else create key with default value
-			config[it->first] = it->second;
-		}
-		delete defaults;
-	}
+			auto* defaults = this->getDefaults();
 
-protected:
-	virtual std::map<std::string, YAML::Node>* getDefaults() {
-		return new std::map<std::string, YAML::Node> {};
-	}
-};
+			for (std::map<std::string, YAML::Node>::const_iterator it = defaults->begin(); it != defaults->end(); it++) {
+				if (config[it->first]) { // If key exists
+					continue;
+				}
+				// Else create key with default value
+				config[it->first] = it->second;
+			}
+			delete defaults;
+		}
+
+	protected:
+		virtual std::map<std::string, YAML::Node>* getDefaults() {
+			return new std::map<std::string, YAML::Node>{};
+		}
+	};
+}

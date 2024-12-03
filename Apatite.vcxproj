@@ -144,15 +144,17 @@
     <ClCompile Include="api\Request.cpp" />
     <ClCompile Include="api\Tokens.cpp" />
     <ClCompile Include="api\AuthServer.cpp" />
-    <ClCompile Include="api\Connector.cpp" />
+    <ClCompile Include="api\APIConnector.cpp" />
     <ClCompile Include="api\Chat.cpp" />
     <ClCompile Include="api\User.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="cmds\CmdManager.cpp" />
+    <ClCompile Include="cmds\Cmds.cpp" />
     <ClCompile Include="cmds\ModCmds.cpp" />
     <ClCompile Include="config\AuthConfig.cpp" />
     <ClCompile Include="config\DefaultConfig.h" />
+    <ClCompile Include="sql\SQLConnector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -162,15 +164,17 @@
     <ClInclude Include="api\Request.h" />
     <ClInclude Include="api\Tokens.h" />
     <ClInclude Include="api\AuthServer.h" />
-    <ClInclude Include="api\Connector.h" />
+    <ClInclude Include="api\APIConnector.h" />
     <ClInclude Include="api\Chat.h" />
     <ClInclude Include="api\User.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="cmds\CmdManager.h" />
+    <ClInclude Include="cmds\Cmds.h" />
     <ClInclude Include="cmds\ModCmds.h" />
     <ClInclude Include="config\AuthConfig.h" />
     <ClInclude Include="ManagedSingleton.h" />
+    <ClInclude Include="sql\SQLConnector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
